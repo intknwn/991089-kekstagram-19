@@ -1,5 +1,7 @@
 'use strict';
 
+var ESC_KEY = 'Escape';
+
 var NUMBER_OF_PHOTOS = 25;
 var DESCRIPTIONS = {
   1: 'Санаторий',
@@ -109,3 +111,203 @@ var appendChildren = function (parent, children) {
 };
 
 appendChildren(picturesListElement, renderPhotos(createObjectsArray(NUMBER_OF_PHOTOS, createPhotoObject)));
+
+var uploadForm = document.querySelector('#upload-select-image');
+var uploadInput = uploadForm.querySelector('#upload-file');
+var body = document.querySelector('body');
+var editorModal = uploadForm.querySelector('.img-upload__overlay');
+var closeModalButton = editorModal.querySelector('#upload-cancel');
+
+var openModal = function () {
+  editorModal.classList.remove('hidden');
+  body.classList.add('modal-open');
+  document.addEventListener('keydown', onModalEscPress);
+};
+
+var closeModal = function () {
+  editorModal.classList.add('hidden');
+  body.classList.remove('modal-open');
+  document.removeEventListener('keydown', onModalEscPress);
+};
+
+var onModalEscPress = function (evt) {
+  if (evt.key === ESC_KEY && !evt.target.matches('.text__hashtags')) {
+    closeModal();
+    uploadForm.reset();
+  }
+};
+
+uploadInput.addEventListener('change', openModal);
+closeModalButton.addEventListener('click', closeModal);
+
+var ZOOM_DEFAULT_VALUE = 100;
+var ZOOM_MAX = 100;
+var ZOOM_MIN = 25;
+var ZOOM_STEP = 25;
+
+var zoomOutButton = uploadForm.querySelector('.scale__control--smaller');
+var zoomInButton = uploadForm.querySelector('.scale__control--bigger');
+var zoomValueInput = uploadForm.querySelector('.scale__control--value');
+var previewImage = uploadForm.querySelector('.img-upload__preview img');
+var effectLevel = uploadForm.querySelector('.img-upload__effect-level');
+var effectLevelInput = uploadForm.querySelector('.effect-level__value');
+var sliderPin = uploadForm.querySelector('.effect-level__pin');
+
+zoomValueInput.value = ZOOM_DEFAULT_VALUE + '%';
+effectLevel.classList.add('hidden');
+
+var setScale = function (scaleValue) {
+  var newScaleValue = scaleValue === 100 ? 1 : '0.' + scaleValue;
+  previewImage.style.transform = 'scale(' + newScaleValue + ')';
+};
+
+var zoomIn = function () {
+  var currentZoomValue = parseInt(zoomValueInput.value, 10);
+  if (currentZoomValue < ZOOM_MAX) {
+    var newZoomValue = currentZoomValue + ZOOM_STEP;
+    zoomValueInput.value = newZoomValue + '%';
+    setScale(newZoomValue);
+  }
+};
+
+var zoomOut = function () {
+  var currentZoomValue = parseInt(zoomValueInput.value, 10);
+  if (currentZoomValue > ZOOM_MIN) {
+    var newZoomValue = currentZoomValue - ZOOM_STEP;
+    zoomValueInput.value = newZoomValue + '%';
+    setScale(newZoomValue);
+  }
+};
+
+zoomInButton.addEventListener('click', zoomIn);
+zoomOutButton.addEventListener('click', zoomOut);
+
+var onEffectChange = function (evt) {
+  if (evt.target && evt.target.matches('.effects__radio')) {
+    previewImage.className = '';
+    var effectName = evt.target.value;
+    var newEffectClass = 'effects__preview--' + effectName;
+    previewImage.classList.add(newEffectClass);
+    if (effectName !== 'none') {
+      effectLevel.classList.remove('hidden');
+    } else {
+      effectLevel.classList.add('hidden');
+    }
+
+    var effect = effects[effectName];
+    previewImage.style.filter = effect.cb(effect.MAX_DEPTH);
+  }
+};
+
+var getProportion = function (currentValue, maxValue) {
+  if (currentValue === maxValue) {
+    return maxValue;
+  }
+
+  return (maxValue * currentValue) / 100;
+};
+
+var effects = {
+  'none': {
+    'cb': function () {
+      return '';
+    }
+  },
+  'chrome': {
+    'MAX_DEPTH': 1,
+    'cb': function (depth) {
+      return 'grayscale(' + getProportion(depth, this.MAX_DEPTH) + ')';
+    }
+  },
+  'sepia': {
+    'MAX_DEPTH': 1,
+    'cb': function (depth) {
+      return 'sepia(' + getProportion(depth, this.MAX_DEPTH) + ')';
+    }
+  },
+  'marvin': {
+    'MAX_DEPTH': 100,
+    'cb': function (depth) {
+      return 'invert(' + getProportion(depth, this.MAX_DEPTH) + '%)';
+    }
+  },
+  'phobos': {
+    'MAX_DEPTH': 3,
+    'cb': function (depth) {
+      return 'blur(' + getProportion(depth, this.MAX_DEPTH) + 'px)';
+    }
+  },
+  'heat': {
+    'MAX_DEPTH': 3,
+    'cb': function (depth) {
+      return 'invert(' + getProportion(depth, this.MAX_DEPTH) + ')';
+    }
+  }
+};
+
+var onEffectDepthChange = function () {
+  var depth = effectLevelInput.value;
+  var effectButtons = uploadForm.querySelectorAll('.effects__radio');
+  var selectedEffect = '';
+  for (var i = 0; i < effectButtons.length; i++) {
+    if (effectButtons[i].checked) {
+      selectedEffect = effectButtons[i].value;
+    }
+  }
+  previewImage.style.filter = effects[selectedEffect].cb(depth);
+};
+
+uploadForm.addEventListener('change', onEffectChange);
+sliderPin.addEventListener('mouseup', onEffectDepthChange);
+
+var hashtagInput = uploadForm.querySelector('.text__hashtags');
+
+var normalizeHashtags = function (hashtags) {
+  var normalizedHashtags = [];
+  for (var i = 0; i < hashtags.length; i++) {
+    normalizedHashtags.push(hashtags[i].toLowerCase());
+  }
+
+  return normalizedHashtags;
+};
+
+var MAX_HASHTAG_LENGTH = 20;
+
+var isUnique = function (element, array) {
+  var result = array.filter(function (currentElement) {
+    if (currentElement === element) {
+      return currentElement;
+    }
+
+    return '';
+  });
+
+  return result.length > 1 ? false : true;
+};
+
+hashtagInput.addEventListener('input', function (evt) {
+  var target = evt.target;
+  var hashtags = evt.target.value.split(' ');
+  var tags = normalizeHashtags(hashtags);
+
+  for (var i = 0; i < tags.length; i++) {
+    var noHashString = tags[i].substr(1, tags[i].length);
+    if (!isUnique(tags[i], tags)) {
+      target.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
+    } else if (tags.length > 5) {
+      target.setCustomValidity('Допускается использование не больше пяти хеш-тегов');
+    } else if (!noHashString) {
+      target.setCustomValidity('Хеш-теги не могут состоять только из одной решётки');
+    } else if (tags[i].length > MAX_HASHTAG_LENGTH) {
+      target.setCustomValidity('Максимальная длина одного хэш-тега не должна превышать 20 символов, включая решётку');
+    } else if (tags[i][0] !== '#') {
+      target.setCustomValidity('Хеш-теги должны начинаться с символа решетки');
+    } else if (noHashString.includes('#')) {
+      target.setCustomValidity('Хэш-теги должны быть разделены пробелами');
+    } else if (!noHashString.match(/^[a-z0-9]+$/i)) {
+      target.setCustomValidity('Хеш-теги должны состоять из букв и чисел и не могут содержать пробелы, спецсимволы (#, @, $ и т.п.), символы пунктуации (тире, дефис, запятая и т.п.), эмодзи и т.д.');
+    } else {
+      target.setCustomValidity('');
+    }
+  }
+});
