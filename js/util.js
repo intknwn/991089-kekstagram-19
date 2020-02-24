@@ -3,6 +3,8 @@
 window.util = (function () {
   var ESC_KEY = 'Escape';
   var ENTER_KEY = 'Enter';
+  var DEBOUNCE_INTERVAL = 500;
+  var lastTimeout;
 
   return {
     isEscEvent: function (evt) {
@@ -28,15 +30,15 @@ window.util = (function () {
       return arr[Math.floor(Math.random() * arr.length)];
     },
     isUnique: function (element, array) {
-      var result = array.filter(function (currentElement) {
-        if (currentElement === element) {
-          return currentElement;
-        }
+      if (array.length === 0) {
+        return true;
+      }
 
-        return '';
+      var result = array.filter(function (currentElement) {
+        return currentElement === element;
       });
 
-      return result.length > 1 ? false : true;
+      return result.length === 0;
     },
     getProportion: function (currentValue, maxValue) {
       if (currentValue === maxValue) {
@@ -48,11 +50,12 @@ window.util = (function () {
     appendChildren: function (parent, children) {
       var fragment = document.createDocumentFragment();
 
-      for (var i = 0; i < children.length; i++) {
-        fragment.appendChild(children[i]);
-      }
+      var result = children.reduce(function (acc, child) {
+        acc.appendChild(child);
+        return acc;
+      }, fragment);
 
-      parent.appendChild(fragment);
+      parent.appendChild(result);
     },
     errorHandler: function (errorMessage) {
       var node = document.createElement('div');
@@ -64,6 +67,29 @@ window.util = (function () {
 
       node.textContent = errorMessage;
       document.body.insertAdjacentElement('afterbegin', node);
+    },
+    takeSome: function (acc, array, counter) {
+      var newArray = array.slice();
+      if (counter === 0) {
+        return acc;
+      }
+
+      var random = this.getRandomElement(newArray);
+      var randomIndex = newArray.indexOf(random);
+      newArray.splice(randomIndex, 1);
+
+      if (this.isUnique(random, acc)) {
+        acc.push(random);
+        counter--;
+      }
+
+      return this.takeSome(acc, newArray, counter);
+    },
+    debounce: function (cb) {
+      if (lastTimeout) {
+        window.clearTimeout(lastTimeout);
+      }
+      lastTimeout = window.setTimeout(cb, DEBOUNCE_INTERVAL);
     }
   };
 })();

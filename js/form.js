@@ -7,12 +7,9 @@
   var hashtagInput = uploadForm.querySelector('.text__hashtags');
 
   var normalizeHashtags = function (hashtags) {
-    var normalizedHashtags = [];
-    for (var i = 0; i < hashtags.length; i++) {
-      normalizedHashtags.push(hashtags[i].toLowerCase());
-    }
-
-    return normalizedHashtags;
+    return hashtags.map(function (tag) {
+      return tag.toLowerCase();
+    });
   };
 
   hashtagInput.addEventListener('input', function (evt) {
