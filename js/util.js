@@ -3,23 +3,23 @@
 window.util = (function () {
   var ESC_KEY = 'Escape';
   var ENTER_KEY = 'Enter';
+  var LEFT_KEY = 'ArrowLeft';
+  var RIGHT_KEY = 'ArrowRight';
   var DEBOUNCE_INTERVAL = 500;
   var lastTimeout;
 
   return {
     isEscEvent: function (evt) {
-      if (evt.key === ESC_KEY) {
-        return true;
-      }
-
-      return false;
+      return evt.key === ESC_KEY;
     },
     isEnterEvent: function (evt) {
-      if (evt.key === ENTER_KEY) {
-        return true;
-      }
-
-      return false;
+      return evt.key === ENTER_KEY;
+    },
+    isLeftKeyEvent: function (evt) {
+      return evt.key === LEFT_KEY;
+    },
+    isRightKeyEvent: function (evt) {
+      return evt.key === RIGHT_KEY;
     },
     getRandomNumber: function (min, max) {
       min = Math.ceil(min);
@@ -38,7 +38,7 @@ window.util = (function () {
         return currentElement === element;
       });
 
-      return result.length === 0;
+      return result.length === 1;
     },
     getProportion: function (currentValue, maxValue) {
       if (currentValue === maxValue) {
@@ -78,7 +78,7 @@ window.util = (function () {
       var randomIndex = newArray.indexOf(random);
       newArray.splice(randomIndex, 1);
 
-      if (this.isUnique(random, acc)) {
+      if (!acc.includes(random)) {
         acc.push(random);
         counter--;
       }

@@ -2,6 +2,7 @@
 
 window.backend = (function () {
   var GET_DATA_URL = 'https://js.dump.academy/kekstagram/data';
+  var SEND_DATA_URL = 'https://js.dump.academy/kekstagram';
   var StatusCode = {
     OK: 200
   };
@@ -37,6 +38,12 @@ window.backend = (function () {
 
       xhr.open('GET', GET_DATA_URL);
       xhr.send();
+    },
+    sendData: function (data, onSuccess, onError) {
+      var xhr = createRequest(onSuccess, onError);
+
+      xhr.open('POST', SEND_DATA_URL);
+      xhr.send(data);
     }
   };
 })();

@@ -1,6 +1,8 @@
 'use strict';
 
 (function () {
+  var INPUT_CLASSNAME = ['.text__hashtags', '.text__description'];
+
   var uploadForm = document.querySelector('#upload-select-image');
   var uploadInput = uploadForm.querySelector('#upload-file');
   var body = document.querySelector('body');
@@ -14,13 +16,23 @@
   };
 
   var closeModal = function () {
+    uploadForm.reset();
+    window.restoreEffectsDefaults();
     editorModal.classList.add('hidden');
     body.classList.remove('modal-open');
     document.removeEventListener('keydown', onModalEscPress);
   };
 
+  var hasFocus = function (eventTarget) {
+    var result = INPUT_CLASSNAME.filter(function (className) {
+      return eventTarget.matches(className);
+    });
+
+    return result.length === 0 ? false : true;
+  };
+
   var onModalEscPress = function (evt) {
-    if (window.util.isEscEvent(evt) && !evt.target.matches('.text__hashtags')) {
+    if (window.util.isEscEvent(evt) && !hasFocus(evt.target)) {
       closeModal();
       uploadForm.reset();
     }
