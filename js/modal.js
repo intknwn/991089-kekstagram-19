@@ -9,13 +9,14 @@
   var editorModal = uploadForm.querySelector('.img-upload__overlay');
   var closeModalButton = editorModal.querySelector('#upload-cancel');
 
-  var openModal = function () {
+  var onModalOpen = function () {
     editorModal.classList.remove('hidden');
     body.classList.add('modal-open');
     document.addEventListener('keydown', onModalEscPress);
   };
 
-  var closeModal = function () {
+  var onModalClose = function (evt) {
+    evt.preventDefault();
     uploadForm.reset();
     window.restoreEffectsDefaults();
     editorModal.classList.add('hidden');
@@ -33,11 +34,11 @@
 
   var onModalEscPress = function (evt) {
     if (window.util.isEscEvent(evt) && !hasFocus(evt.target)) {
-      closeModal();
       uploadForm.reset();
+      onModalClose(evt);
     }
   };
 
-  uploadInput.addEventListener('change', openModal);
-  closeModalButton.addEventListener('click', closeModal);
+  uploadInput.addEventListener('change', onModalOpen);
+  closeModalButton.addEventListener('click', onModalClose);
 })();

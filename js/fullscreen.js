@@ -31,9 +31,9 @@
   var renderComments = function (comments) {
     var commentElements = comments.map(function (comment) {
       var commentElement = commentTemplate.cloneNode(true);
-      var avatar = commentElement.querySelector('.social__picture');
-      avatar.src = comment.avatar;
-      avatar.alt = comment.name;
+      var avatarElement = commentElement.querySelector('.social__picture');
+      avatarElement.src = comment.avatar;
+      avatarElement.alt = comment.name;
       commentElement.querySelector('.social__text').textContent = comment.message;
 
       return commentElement;

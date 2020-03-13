@@ -29,27 +29,31 @@
 
   hashtagInput.addEventListener('input', function (evt) {
     var target = evt.target;
-    var hashtags = evt.target.value.split(' ');
+    target.setCustomValidity('');
+    var hashtags = evt.target.value
+      .split(' ')
+      .filter(function (hashtag) {
+        return hashtag;
+      });
     var tags = normalizeHashtags(hashtags);
 
     tags.forEach(function (tag) {
+
       var noHashString = tag.substr(1, tag.length);
-      if (!window.util.isUnique(tag, tags)) {
-        target.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
-      } else if (tags.length > 5) {
-        target.setCustomValidity('Допускается использование не больше пяти хеш-тегов');
+      if (tag[0] !== '#') {
+        target.setCustomValidity('Хеш-теги должны начинаться с символа решетки');
       } else if (!noHashString) {
         target.setCustomValidity('Хеш-теги не могут состоять только из одной решётки');
-      } else if (tag.length > MAX_HASHTAG_LENGTH) {
-        target.setCustomValidity('Максимальная длина одного хэш-тега не должна превышать 20 символов, включая решётку');
-      } else if (tag[0] !== '#') {
-        target.setCustomValidity('Хеш-теги должны начинаться с символа решетки');
       } else if (noHashString.includes('#')) {
         target.setCustomValidity('Хэш-теги должны быть разделены пробелами');
       } else if (!noHashString.match(/^[а-яёa-z0-9]+$/i)) {
         target.setCustomValidity('Хеш-теги должны состоять из букв и чисел и не могут содержать пробелы, спецсимволы (#, @, $ и т.п.), символы пунктуации (тире, дефис, запятая и т.п.), эмодзи и т.д.');
-      } else {
-        target.setCustomValidity('');
+      } else if (!window.util.isUnique(tag, tags)) {
+        target.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
+      } else if (tags.length > 5) {
+        target.setCustomValidity('Допускается использование не больше пяти хеш-тегов');
+      } else if (tag.length > MAX_HASHTAG_LENGTH) {
+        target.setCustomValidity('Максимальная длина одного хэш-тега не должна превышать 20 символов, включая решётку');
       }
     });
 
@@ -94,7 +98,7 @@
   var onErrorOutsideClick = onOutsideClick(errorModal, onErrorEscPress);
 
 
-  var successHandler = function () {
+  var onSuccessUpload = function () {
     uploadForm.reset();
     window.restoreEffectsDefaults();
 
@@ -110,7 +114,7 @@
     main.appendChild(successModal);
   };
 
-  var errorHandler = function () {
+  var onErrorUpload = function () {
     submitButton.textContent = 'Опубликовать';
     submitButton.disabled = false;
 
@@ -124,7 +128,7 @@
   var onFormSubmit = function (evt) {
     submitButton.textContent = 'Данные отправляются...';
     submitButton.disabled = true;
-    window.backend.sendData(new FormData(uploadForm), successHandler, errorHandler);
+    window.backend.sendData(new FormData(uploadForm), onSuccessUpload, onErrorUpload);
     evt.preventDefault();
   };
 
